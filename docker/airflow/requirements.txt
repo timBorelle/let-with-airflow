@@ -1,0 +1,8 @@
+pandas
+psycopg2-binary
+SQLAlchemy<2.0
+xgboost<1.6
+scikit-learn
+pendulum
+numpy
+pytest
