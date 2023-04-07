@@ -1,0 +1,49 @@
+version: '3.1'
+
+services:
+
+  db:
+    container_name: pg_container
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: census
+    ports:
+      - 5432:5432
+
+  pgadmin:
+    container_name: pgadmin4_container
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json 
+    ports:
+      - "5050:80"
+
+  airflow:
+    build: ./docker/airflow
+    restart: always
+    container_name: airflow_container
+    volumes:
+      - ./mnt/airflow/dags:/opt/airflow/dags
+      - ./docker/airflow/requirements.txt:/app/requirements.txt
+      - ./data:/app/data
+    ports:
+      - 8080:8080
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "airflow", "8080" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    depends_on:
+      - db
+
+networks:
+  default:
+    name: airflow-network
